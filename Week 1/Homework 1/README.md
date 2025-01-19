@@ -30,7 +30,7 @@ docker build -t taxi_ingest:v001 .
 URL="https://github.com/DataTalksClub/nyc-tlc-data/releases/download/green/green_tripdata_2019-10.csv.gz"
 
 docker run -it \
-  --network=week1_default \
+  --network=pg-network \
   taxi_ingest:v001 \
     --user=postgres \
     --password=postgres \
@@ -40,7 +40,7 @@ docker run -it \
     --table_name=green_tripdata \
     --url=${URL}
 ```
-where zoomcamp2025_default is a netwokr's name, greated from the name of the directory, where was launched `docker-compose.yaml`
+where --network is a netwokr's name, created from the name of the directory plus "_default", where was launched `docker-compose.yaml` if the network name is not explicitly specified in the `docker-compose.yaml` file.
 
 Now, we can login in browser by address `http://127.0.0.1:8080/` with data from `pgadmin`, and then create a server by using the data from `postgres`. There we can see a fresh-created database with table `yellow_taxi_trips`
 
@@ -177,3 +177,8 @@ And the answer is:
 +---+---------------+----------+
 ```
 namely, `JFK Airport` is the drop off zone that had the largest tip ($87.3)
+
+
+## Question 7. Terraform Workflow
+
+The right answer is terraform init, terraform apply -auto-approve, terraform destroy

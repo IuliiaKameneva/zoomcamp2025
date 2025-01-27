@@ -11,7 +11,7 @@ services:
     volumes:
       - vol-pgdata:/var/lib/postgresql/data
     networks:
-      - pg-network
+      - network_pgadmin_kestra
 
   pgadmin:
     container_name: pgadmin
@@ -24,7 +24,7 @@ services:
     volumes:
       - vol-pgadmin_data:/var/lib/pgadmin 
     networks:
-      - pg-network
+      - network_pgadmin_kestra
 
 
 volumes:
@@ -34,5 +34,6 @@ volumes:
     name: vol-pgadmin_data
 
 networks:
-  pg-network:
-    name: pg-network
+  network_pgadmin_kestra:
+    name: network_pgadmin_kestra
+    external: true

@@ -96,7 +96,7 @@ and the answer is
 ## Question 4
 What is the best strategy to make an optimized table in Big Query if your query will always order the results by PUlocationID and filter based on lpep_pickup_datetime? (Create a new table with this strategy)
 - Cluster on lpep_pickup_datetime Partition by PUlocationID
-- Partition by lpep_pickup_datetime Cluster on PUlocationID 11111
+- Partition by lpep_pickup_datetime Cluster on PUlocationID
 - Partition by lpep_pickup_datetime and Partition by PUlocationID
 - Cluster on by lpep_pickup_datetime and Cluster on PUlocationID
 
@@ -104,29 +104,32 @@ What is the best strategy to make an optimized table in Big Query if your query 
 I try to create the tables by each strategy and compare it.
 
 ```sql
--- Creating a partitioned and clustered table
+-- Creating a сluster on lpep_pickup_datetime and partition by PUlocationID
+-- In BigQuery, partitioning by `id_location` is not directly possible, as partitioning only supports dates, numeric ranges, and ingestion time. However, if `id_location` is a numeric identifier, **Integer Range Partitioning** can be used.
 CREATE OR REPLACE TABLE fair-canto-447119-p5.zoomcamp.green_tripdata_41
 PARTITION BY RANGE_BUCKET(PUlocationID, GENERATE_ARRAY(0, 10000, 1000)) 
 CLUSTER BY lpep_pickup_datetime AS
 SELECT * FROM fair-canto-447119-p5.zoomcamp.green_tripdata_non_partitoned;
 
--- Creating a partition and cluster table
+-- Creating a partition by lpep_pickup_datetime and cluster on PUlocationID
 CREATE OR REPLACE TABLE fair-canto-447119-p5.zoomcamp.green_tripdata_42
 PARTITION BY DATE(lpep_pickup_datetime) 
 CLUSTER BY PUlocationID AS
 SELECT * FROM fair-canto-447119-p5.zoomcamp.green_tripdata_non_partitoned;
 
--- Creating a partition and cluster table INPOSSIBLE!!! TWO PARTITIONS
+-- Creating a partition by lpep_pickup_datetime and partition by PUlocationID
+-- We can only partition a table by one column at a time, so the following query is inpossible
 CREATE OR REPLACE TABLE fair-canto-447119-p5.zoomcamp.green_tripdata_43
 PARTITION BY DATE(lpep_pickup_datetime) and PUlocationID AS
 SELECT * FROM fair-canto-447119-p5.zoomcamp.green_tripdata_non_partitoned;
 
-
--- Creating a partition and cluster tabl
+-- Creating a cluster on by lpep_pickup_datetime and cluster on PUlocationID
 CREATE OR REPLACE TABLE fair-canto-447119-p5.zoomcamp.green_tripdata_44
 cluster BY lpep_pickup_datetime, PUlocationID AS
 SELECT * FROM fair-canto-447119-p5.zoomcamp.green_tripdata_non_partitoned;
-
+```
+Here I checked the estimated amount of data is processed for each created table:
+```sql
 -- Query scans 6.41 MB
 SELECT count(*) as trips
 FROM fair-canto-447119-p5.zoomcamp.green_tripdata_41
@@ -146,9 +149,19 @@ So, the best strategy is `Partition by lpep_pickup_datetime Cluster on PUlocatio
 
 
 ## Question 5
-...
+Write a query to retrieve the distinct PULocationID between lpep_pickup_datetime 06/01/2022 and 06/30/2022 (inclusive)
+
+Use the materialized table you created earlier in your from clause and note the estimated bytes. Now change the table in the from clause to the partitioned table you created for question 4 and note the estimated bytes processed. What are these values?
+
+Choose the answer which most closely matches.
+
+- 22.82 MB for non-partitioned table and 647.87 MB for the partitioned table
+- 12.82 MB for non-partitioned table and 1.12 MB for the partitioned table
+- 5.63 MB for non-partitioned table and 0 MB for the partitioned table
+- 10.31 MB for non-partitioned table and 10.31 MB for the partitioned table
 
 ### Solution
+I need to execute the following queries:
 ```sql
 -- 12.82 MB
 SELECT DISTINCT(PULocationID)
@@ -160,39 +173,39 @@ SELECT DISTINCT(PULocationID)
 FROM fair-canto-447119-p5.zoomcamp.green_tripdata_42
 WHERE DATE(lpep_pickup_datetime) BETWEEN '2022-06-01' AND '2022-06-30';
 ```
+As a result, I can say that `12.82 MB for non-partitioned table and 1.12 MB for the partitioned table` is the right answer.
 
 ## Question 6
+Where is the data stored in the External Table you created?
+
+- Big Query
+- GCP Bucket
+- Big Table
+- Container Registry
 
 ### Solution
+The answer can be found in the details of table:
+![Table storage](images/q3.png)
 
-✅ GCP Bucket (Google Cloud Storage)
-
-When you create an External Table in BigQuery, the data remains in its original location, and BigQuery only stores metadata about the table. The actual data is not stored in BigQuery.
+So, the answer is `GCP Bucket`
 
 ## Question 7
+It is best practice in Big Query to always cluster your data:
+
+- True
+- False
 
 ### Solution
-**False** ✅  
+The answer is **False** 
 
 Clustering in BigQuery **is not always necessary** and should be used strategically based on query patterns and dataset characteristics. While clustering **improves query performance** by organizing data based on selected columns, it also introduces some trade-offs.  
 
-### **When Clustering is Beneficial**  
-🔹 Your queries frequently filter or group by specific columns (e.g., `WHERE city = 'New York'`).  
-🔹 Your dataset is large (millions+ rows), and clustering can reduce the amount of scanned data.  
-🔹 The clustered column has a relatively low to moderate cardinality (not too many unique values).  
+**When Clustering is Not Needed**  
+- Your dataset is small (clustering won’t provide significant benefits).  
+- Your queries are **highly random** (no clear patterns in filtering).  
+- Your columns have **extremely high cardinality** (e.g., unique UUIDs for each row).  
+- You're already **using partitioning effectively** (partitioning might be enough).  
 
-### **When Clustering is Not Needed**  
-🔸 Your dataset is small (clustering won’t provide significant benefits).  
-🔸 Your queries are **highly random** (no clear patterns in filtering).  
-🔸 Your columns have **extremely high cardinality** (e.g., unique UUIDs for each row).  
-🔸 You're already **using partitioning effectively** (partitioning might be enough).  
-
-### **Best Practice**  
-✅ **Use clustering when it aligns with your query patterns.**  
-✅ **Combine clustering with partitioning** for even better performance.  
-✅ **Test performance before and after clustering** to measure improvements.  
-
-Would you like help choosing the best strategy for your dataset? 🚀
 
 
 

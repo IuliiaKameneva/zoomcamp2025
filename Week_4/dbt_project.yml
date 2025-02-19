@@ -39,8 +39,8 @@ models:
   my_new_project:
     location: europe-west2
     # Applies to all files under models/example/
-    example:
-      +materialized: table
+    # example:
+    #   +materialized: table
 
 vars:
   payment_type_values: [1, 2, 3, 4, 5, 6]

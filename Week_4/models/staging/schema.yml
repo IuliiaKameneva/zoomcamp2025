@@ -3,11 +3,12 @@ version: 2
 sources:
   - name: staging
     database: fair-canto-447119-p5
-    schema: zoomcamp
+    schema: trip_data_all
       # loaded_at_field: record_loaded_at
     tables:
       - name: green_tripdata
       - name: yellow_tripdata
+      - name: fhv_tripdata
 
 models:
   - name: stg_green_tripdata

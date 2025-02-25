@@ -90,9 +90,9 @@ What would you change to accomplish that in a such way that command line argumen
 
 ### Solution
 Values priority:
-Through CLI (`dbt run --vars`)
-From enviroment variables (env_var())
-Values by default in `dbt_project.yml`
+- Through CLI (`dbt run --vars`)
+- From enviroment variables (env_var())
+- Values by default in `dbt_project.yml`
 
 So, the right answer is:
 `Update the WHERE clause to pickup_datetime >= CURRENT_DATE - INTERVAL '{{ var("days_back", env_var("DAYS_BACK", "30")) }}' DAY`
@@ -232,7 +232,7 @@ I obtain the following result:
 ```
 
 The answer is:
-green: {best: 2020/Q1, worst: 2020/Q2}, yellow: {best: 2020/Q1, worst: 2020/Q2}
+`green: {p97: 55.0, p95: 45.0, p90: 26.5}, yellow: {p97: 31.5, p95: 25.5, p90: 19.0}`
 
 ### Question 7: Top #Nth longest P90 travel time Location for FHV
 

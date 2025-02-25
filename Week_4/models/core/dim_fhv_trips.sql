@@ -13,6 +13,7 @@ with fhv_tripdata as (
 ), 
 dim_zones as (
     select * from {{ ref('dim_zones') }}
+    where borough != 'Unknown'
 )
 select fhv_tripdata.dispatching_base_num, 
     fhv_tripdata.year,

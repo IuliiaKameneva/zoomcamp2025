@@ -6,6 +6,9 @@ terraform {
     kestra = {
       source  = "kestra-io/kestra"
     }
+    http = {
+      source  = "hashicorp/http"
+    }
   }
 }
 
@@ -35,3 +38,36 @@ resource "google_bigquery_dataset" "demo_dataset" {
   location   = var.location
 }
 
+provider "kestra" {
+  url   = "http://kestra:8080"
+}
+
+resource "kestra_kv" "gcp_project_id" {
+  namespace = "final_project"
+  key       = "GCP_PROJECT_ID"
+  value     = var.project
+}
+
+resource "kestra_kv" "gcp_location" {
+  namespace = "final_project"
+  key       = "GCP_LOCATION"
+  value     = var.location
+}
+
+resource "kestra_kv" "gcp_bucket_name" {
+  namespace = "final_project"
+  key       = "GCP_BUCKET_NAME"
+  value     = var.gcs_bucket_name
+}
+
+resource "kestra_kv" "gcp_dataset" {
+  namespace = "final_project"
+  key       = "GCP_DATASET"
+  value     = var.bq_dataset_name
+}
+
+resource "kestra_kv" "gcp_creds" {
+  namespace = "final_project"
+  key       = "GCP_CREDS"
+  value     = jsonencode(base64decode(var.gcp_creds))
+}

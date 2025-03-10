@@ -4,9 +4,13 @@ volumes:
   kestra-data:
     driver: local
 
-secrets:
-  google_credentials:
-    file: ../essencial_data/fair-canto-447119-p5-9091e1a7224d.json
+# secrets:
+#   google_credentials:
+#     file: ../essencial_data/fair-canto-447119-p5-9091e1a7224d.json
+
+networks:
+  kestra-network:
+    driver: bridge
 
 services:
   terraform:
@@ -16,17 +20,22 @@ services:
       - .:/workspace
       - /workspaces/zoomcamp2025/essencial_data:/workspace/essencial_data
       - ~/.config/gcloud:/root/.config/gcloud
+    env_file:
+      - .env
     environment:
       - GOOGLE_APPLICATION_CREDENTIALS=/workspace/essencial_data/terraform-key.json
     stdin_open: true
     tty: true
     entrypoint: ["/bin/sh", "-c"]
     depends_on:
-      - kestra
+      kestra:
+        condition: service_healthy
     command:
       - |
         terraform init &&
         terraform apply -auto-approve
+    networks:
+      - kestra-network
 
   postgres:
     image: postgres
@@ -41,6 +50,8 @@ services:
       interval: 30s
       timeout: 10s
       retries: 10
+    networks:
+      - kestra-network
 
   kestra:
     image: kestra/kestra:latest
@@ -48,18 +59,12 @@ services:
     user: "root"
     env_file:
       - .env
-    # secrets:
-    #   - google_credentials
     command: server standalone
     volumes:
-      # - ../essencial_data/fair-canto-447119-p5-9091e1a7224d.json:/app/google_credentials.json
       - kestra-data:/app/storage
       - /var/run/docker.sock:/var/run/docker.sock
       - /tmp/kestra-wd:/tmp/kestra-wd
     environment:
-      # PATH: "/app:${PATH}"
-      # SECRET_MYSECRET: bcbcbcvbcvb
-      # GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/google_credentials
       KESTRA_CONFIGURATION: |
         datasources:
           postgres:
@@ -88,12 +93,16 @@ services:
               docker:
                 volume-enabled: true
           url: http://localhost:8080/
-    # entrypoint: ["sh", "-c"]
-    # command: >
-    #   "curl -X POST "http://localhost:8080/api/v1/secrets/final_project" -H "Content-Type: application/json" -d '{"key": "GCP_CREDS_CONTENT", "value": "'"$(cat /app/google_credentials.json | jq -c .)"'" }' && kestra server standalone"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     ports:
       - "8080:8080"
       - "8081:8081"
     depends_on:
       postgres:
         condition: service_started
+    networks:
+      - kestra-network

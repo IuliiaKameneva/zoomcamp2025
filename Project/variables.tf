@@ -32,3 +32,8 @@ variable "gcs_storage_class" {
   description = "Bucker Storage Class"
   default     = "STANDART"
 }
+
+variable "gcp_creds" {
+  type      = string
+  sensitive = true  # Помечаем переменную как чувствительную
+}

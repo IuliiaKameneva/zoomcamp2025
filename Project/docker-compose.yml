@@ -33,6 +33,7 @@ services:
     command:
       - |
         terraform init &&
+        terraform plan &&
         terraform apply -auto-approve
     networks:
       - kestra-network

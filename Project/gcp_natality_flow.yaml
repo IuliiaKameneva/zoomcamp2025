@@ -1,0 +1,47 @@
+id: gcp_natality_flow
+namespace: final_project
+
+inputs:
+  - id: tables
+    type: JSON
+    description: "List of BigQuery tables to extract data from"
+    defaults: ["county_natality", "county_natality_by_abnormal_conditions"] # TODO: all tables
+
+# variables:
+#   file: "{{inputs.table}}.csv"
+#   gcs_file: "gs://{{kv('GCP_BUCKET_NAME')}}/{{vars.file}}"
+#   table: "{{kv('GCP_DATASET')}}.{{inputs.table}}"
+
+tasks: # TODO: do it in parallel
+  - id: iterate_over_tables
+    type: io.kestra.plugin.core.flow.EachSequential  # Execute tables in parallel
+    value: "{{ inputs.tables }}"
+    tasks:
+      - id: extract_data_from_bigquery
+        type: io.kestra.plugin.gcp.bigquery.Query
+        description: "Извлечь данные из BigQuery Public Dataset"
+        projectId: "{{ kv('GCP_PROJECT_ID') }}"
+        # TODO: without limit
+        sql: |
+          SELECT *
+          FROM `bigquery-public-data.sdoh_cdc_wonder_natality.{{ taskrun.value }}`
+          LIMIT 100 
+        store: true
+
+      - id: convert_data_to_csv
+        type: io.kestra.plugin.serdes.csv.IonToCsv
+        from: "{{ outputs.extract_data_from_bigquery[taskrun.value].uri }}"
+
+      - id: upload_to_gcs
+        type: io.kestra.plugin.gcp.gcs.Upload
+        description: "Загрузить данные в Google Cloud Storage"
+        from: "{{ outputs.convert_data_to_csv[taskrun.value].uri }}"
+        to:  "gs://{{kv('GCP_BUCKET_NAME')}}/{{taskrun.value}}"  # Укажите ваш GCS bucket и путь
+
+pluginDefaults:
+  - type: io.kestra.plugin.gcp
+    values:
+      serviceAccount: "{{kv('GCP_CREDS')}}"
+      projectId: "{{kv('GCP_PROJECT_ID')}}"
+      location: "{{kv('GCP_LOCATION')}}"
+      bucket: "{{kv('GCP_BUCKET_NAME')}}"

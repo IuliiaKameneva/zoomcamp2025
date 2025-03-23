@@ -13,7 +13,7 @@ terraform {
 }
 
 provider "google" {
-  credentials = file(var.google_credentials)
+  credentials = base64decode(var.gcp_creds)
   project     = var.project
   region      = var.region
 }
@@ -70,26 +70,6 @@ resource "kestra_kv" "gcp_creds" {
   namespace = "final_project"
   key       = "GCP_CREDS"
   value     = jsonencode(base64decode(var.gcp_creds))
-}
-
-resource "kestra_flow" "minimal_flow" {
-  namespace = "final_project"
-  flow_id   = "minimal_flow"
-
-  content = <<-EOT
-id: minimal_flow
-namespace: final_project
-tasks:
-  - id: hello
-    type: io.kestra.core.tasks.log.Log
-    message: "Hello, World!"
-EOT
-}
-
-resource "kestra_flow" "example_flow" {
-  namespace = "final_project"
-  flow_id   = "example_flow"
-  content   = file("${path.module}/kestra_flow.yaml")
 }
 
 resource "kestra_flow" "gcp_natality_flow" {

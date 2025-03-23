@@ -1,26 +1,21 @@
-variable "google_credentials" {
-  description = "Credentials of Service Account in GCP Console" 
-  default = "/workspace/essencial_data/fair-canto-447119-p5-9091e1a7224d.json"
-}
-
 variable "project" {
   description = "Project ID"
-  default     = "fair-canto-447119-p5"
+  default     = "fair-canto-447119-p5" # ADD YOUR PROJECT ID
 }
 
 variable "location" {
   description = "Project Location"
-  default     = "US"
+  default     = "US" # ADD LOCATION OF YOUR PROJECT
 }
 
 variable "region" {
   description = "Region"
-  default     = "us-central"
+  default     = "us-central" # ADD REGION OF YOUR PROJECT
 }
 
 variable "bq_dataset_name" {
   description = "My BigQuery Dataset Name"
-  default     = "project_dataset"
+  default     = "project_dataset"  # NOT CHANGE
 }
 
 variable "gcs_bucket_name" {

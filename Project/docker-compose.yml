@@ -4,10 +4,6 @@ volumes:
   kestra-data:
     driver: local
 
-# secrets:
-#   google_credentials:
-#     file: ../essencial_data/fair-canto-447119-p5-9091e1a7224d.json
-
 networks:
   kestra-network:
     driver: bridge
@@ -18,12 +14,9 @@ services:
     working_dir: /workspace
     volumes:
       - .:/workspace
-      - /workspaces/zoomcamp2025/essencial_data:/workspace/essencial_data
       - ~/.config/gcloud:/root/.config/gcloud
     env_file:
       - .env
-    environment:
-      - GOOGLE_APPLICATION_CREDENTIALS=/workspace/essencial_data/terraform-key.json
     stdin_open: true
     tty: true
     entrypoint: ["/bin/sh", "-c"]
@@ -33,7 +26,7 @@ services:
     command:
       - |
         terraform init &&
-        terraform plan &&
+        terraform plan -out=tfplan &&
         terraform apply -auto-approve
     networks:
       - kestra-network
@@ -100,7 +93,7 @@ services:
       timeout: 5s
       retries: 3
     ports:
-      - "8080:8080"
+      - "8090:8080"
       - "8081:8081"
     depends_on:
       postgres:

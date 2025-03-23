@@ -5,7 +5,7 @@ inputs:
   - id: tables
     type: JSON
     description: "List of BigQuery tables to extract data from"
-    defaults: ["county_natality", "county_natality_by_abnormal_conditions"]
+    defaults: ["county_natality", "county_natality_by_abnormal_conditions", "county_natality_by_congenital_abnormalities", "county_natality_by_payment", "county_natality_by_father_race", "county_natality_by_maternal_morbidity", "county_natality_by_mother_race"]
 
   - id: dbt_command
     type: SELECT
@@ -15,21 +15,8 @@ inputs:
       - dbt build
       - dbt debug # use when running the first time to validate DB connection
 
-# variables:
-#   file: "{{inputs.table}}.csv"
-#   gcs_file: "gs://{{kv('GCP_BUCKET_NAME')}}/{{vars.file}}"
-#   table: "{{kv('GCP_DATASET')}}.{{inputs.table}}"
 
 tasks:
-  - id: sync
-    type: io.kestra.plugin.git.SyncNamespaceFiles
-    url: https://github.com/IuliiaKameneva/zoomcamp2025
-    branch: main
-    namespace: "{{flow.namespace}}"
-    gitDirectory: Project/dbt
-    dryRun: false
-    disabled: false # this Git Sync is needed only when running it the first time, afterwards the task can be disabled
-
   - id: if_dbt_build
     type: io.kestra.plugin.core.flow.If
     condition: "{{inputs.dbt_command == 'dbt build'}}"
@@ -68,6 +55,16 @@ tasks:
               uris = ['gs://{{kv('GCP_BUCKET_NAME')}}/{{taskrun.value}}']
             );
 
+    else:
+    - id: sync
+      type: io.kestra.plugin.git.SyncNamespaceFiles
+      url: https://github.com/IuliiaKameneva/zoomcamp2025
+      branch: main
+      namespace: "{{flow.namespace}}"
+      gitDirectory: Project/dbt
+      dryRun: false
+      disabled: false # this Git Sync is needed only when running it the first time, afterwards the task can be disabled
+  
   - id: dbt-build
     type: io.kestra.plugin.dbt.cli.DbtCLI
     env:
@@ -110,3 +107,10 @@ pluginDefaults:
       location: "{{kv('GCP_LOCATION')}}"
       bucket: "{{kv('GCP_BUCKET_NAME')}}"
       dataset: "{{kv('GCP_DATASET')}}"
+      
+triggers:
+  - id: example_trigger
+    type: io.kestra.plugin.core.trigger.Schedule
+    cron: "* * * */1 *"  # Запускать каждую минуту
+    backfill:
+      start: "2023-10-01T00:00:00Z"  # Укажите дату в прошлом

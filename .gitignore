@@ -3,3 +3,7 @@ Project/.env
 Project/.terraform
 Week\ 6
 Project/essencial_data
+Project/tfplan
+Project/terraform.tfstate.backup
+Project/terraform.tfstate.backup
+Project/.terraform.lock.hcl

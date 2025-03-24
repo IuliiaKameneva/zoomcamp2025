@@ -72,6 +72,11 @@ It's the main execution. By trigger it will execute every month, but you need to
 - create_external_table: creates the external tables for further processing 
 - runs dbt for data processing
 
+To close the execution stop docker compose and run
+```
+$ docker compose down -v
+```
+
 ## Dashboard Visualization
 After successfull flow execution you can visualize the data like in the report [https://lookerstudio.google.com/reporting/b6746fc0-fd70-4e38-88fa-a4ba20d15288](https://lookerstudio.google.com/reporting/b6746fc0-fd70-4e38-88fa-a4ba20d15288)
 

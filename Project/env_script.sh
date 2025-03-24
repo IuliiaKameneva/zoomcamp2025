@@ -1,7 +1,16 @@
 #!/bin/bash
 
-# Чтение JSON файла и кодирование его в Base64
-ENCODED_JSON=$(cat ..//essencial_data/fair-canto-447119-p5-9091e1a7224d.json | base64 -w 0)
+# Check if the first argument is passed
+if [ -z "$1" ]; then
+  echo "Error: specify the path to the JSON file."
+  echo "Usage: $0 <path_to_JSON_file> "
+  exit 1
+fi
 
-# Запись в .env файл
+# Read the JSON file and encode it in Base64
+ENCODED_JSON=$(cat "$1" | base64 -w 0)
+
+# Write to the .env file
 echo "TF_VAR_gcp_creds=${ENCODED_JSON}" > .env
+
+echo ".env file successfully created."
